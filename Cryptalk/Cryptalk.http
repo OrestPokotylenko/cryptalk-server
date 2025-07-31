@@ -1,0 +1,6 @@
+@Cryptalk_HostAddress = http://localhost:5091
+
+GET {{Cryptalk_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
