@@ -1,0 +1,7 @@
+services:
+  cryptalk.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"

@@ -27,3 +27,23 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Cryptalk.dll"]
+
+# Migration runner image
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final-migration
+
+WORKDIR /app
+
+COPY --from=publish /app/publish .
+
+# copy local tools config
+COPY .config/dotnet-tools.json .config/dotnet-tools.json
+
+# install local tool
+RUN dotnet tool restore
+
+# copy script and project file
+COPY ./Cryptalk ./Cryptalk
+COPY ./migrate.sh ./ 
+RUN chmod +x ./migrate.sh
+
+ENTRYPOINT ["./migrate.sh"]

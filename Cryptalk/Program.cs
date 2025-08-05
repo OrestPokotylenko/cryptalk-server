@@ -1,4 +1,7 @@
 
+using Cryptalk.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace Cryptalk
 {
     public class Program
@@ -6,6 +9,9 @@ namespace Cryptalk
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddDbContext<CryptalkDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
 
             // Add services to the container.
 
@@ -27,7 +33,7 @@ namespace Cryptalk
 
 
             app.MapControllers();
-
+            Console.WriteLine("Cryptalk server started");
             app.Run();
         }
     }
