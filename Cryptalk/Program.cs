@@ -11,7 +11,7 @@ namespace Cryptalk
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<CryptalkDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectiongit add ")));
 
             // Add services to the container.
 
