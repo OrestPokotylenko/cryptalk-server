@@ -11,7 +11,7 @@ namespace Cryptalk
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<CryptalkDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectiongit add ")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
 
             // Add services to the container.
 
@@ -33,7 +33,6 @@ namespace Cryptalk
 
 
             app.MapControllers();
-            Console.WriteLine("Cryptalk server started");
             app.Run();
         }
     }
