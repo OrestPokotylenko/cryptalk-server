@@ -1,49 +1,49 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
+# --- Base runtime for the API ---
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 
-
-# This stage is used to build the service project
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Cryptalk/Cryptalk.csproj", "Cryptalk/"]
-RUN dotnet restore "./Cryptalk/Cryptalk.csproj"
+
+COPY Cryptalk/Cryptalk.csproj Cryptalk/
+RUN dotnet restore Cryptalk/Cryptalk.csproj
+
 COPY . .
-WORKDIR "/src/Cryptalk"
-RUN dotnet build "./Cryptalk.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
+WORKDIR /src/Cryptalk
+RUN dotnet build Cryptalk.csproj -c Release -o /app/build
+
+# Publish stage
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Cryptalk.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR /src/Cryptalk
+RUN dotnet publish Cryptalk.csproj -c Release -o /app/publish /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+# Final API image
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Cryptalk.dll"]
 
-# Migration runner image
+# Migration runner
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final-migration
+WORKDIR /src
 
-WORKDIR /app
+COPY Cryptalk/Cryptalk.csproj Cryptalk/
+RUN dotnet restore Cryptalk/Cryptalk.csproj
 
-COPY --from=publish /app/publish .
+COPY . .
 
-# copy local tools config
 COPY .config/dotnet-tools.json .config/dotnet-tools.json
-
-# install local tool
 RUN dotnet tool restore
 
-# copy script and project file
-COPY ./Cryptalk ./Cryptalk
-COPY ./migrate.sh ./ 
-RUN chmod +x ./migrate.sh
+COPY migrate.sh /migrate.sh
+RUN chmod +x /migrate.sh
+ENTRYPOINT ["/migrate.sh"]
 
-ENTRYPOINT ["./migrate.sh"]
+# --- Caddy with Cloudflare DNS plugin ---
+FROM caddy:builder AS caddy-builder
+RUN xcaddy build --with github.com/caddy-dns/cloudflare
+FROM caddy:latest AS caddy-final
+COPY --from=caddy-builder /usr/bin/caddy /usr/bin/caddy
