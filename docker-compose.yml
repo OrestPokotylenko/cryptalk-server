@@ -1,35 +1,79 @@
 services:
   cryptalk.api:
-    image: ${DOCKER_REGISTRY-}cryptalkapi
-    container_name: cryptalk.api
-    environment:
-      - ConnectionStrings__DatabaseConnection=Host=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     build:
       context: .
       dockerfile: Cryptalk/Dockerfile
+      target: final
+    container_name: cryptalk.api
+    env_file:
+      - .env
+    environment:
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: true
+      CONNECTIONSTRINGS__DEFAULT: ${ConnectionStrings__Default}
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "${API_PORT}:${API_PORT}"
+    depends_on:
+      - cryptalk.database
+    networks:
+      - cryptalk_network
 
   cryptalk.database:
     image: postgres:latest
     container_name: cryptalk.database
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - ./.containers/cryptalk-db:/var/lib/postgresql/data
     ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    networks:
+      - cryptalk_network
 
   cryptalk.migration:
     build:
       context: .
       dockerfile: Cryptalk/Dockerfile
       target: final-migration
+    container_name: cryptalk.migration
+    env_file:
+      - .env
     depends_on:
       - cryptalk.database
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-    command: ./migrate.sh
     restart: "no"
+    networks:
+      - cryptalk_network
+
+  cryptalk.caddy:
+    build:
+      context: .
+      dockerfile: Cryptalk/Dockerfile
+    container_name: cryptalk.caddy
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${CADDY_PORT1}:${CADDY_PORT1}"
+      - "${CADDY_PORT2}:${CADDY_PORT2}"
+    environment:
+      EMAIL: ${EMAIL}
+      DOMAIN: ${DOMAIN}
+      CLOUDFLARE_TOKEN: ${CLOUDFLARE_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - cryptalk_network
+
+volumes:
+  caddy_data:
+  caddy_config:
+  cryptalk-db:
+
+networks:
+  cryptalk_network:

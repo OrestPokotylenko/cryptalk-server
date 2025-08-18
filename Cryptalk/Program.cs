@@ -1,28 +1,31 @@
-
 using Cryptalk.Data;
+using Cryptalk.Utils;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace Cryptalk
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var cfg = builder.Configuration;
 
             builder.Services.AddDbContext<CryptalkDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnection")));
-
-            // Add services to the container.
+                options.UseNpgsql(cfg["ConnectionStrings:Default"]));
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new() { Title = "API", Version = "v1" });
+            });
 
+            // 2. Build AFTER everything is registered
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -31,8 +34,15 @@ namespace Cryptalk
 
             app.UseAuthorization();
 
-
             app.MapControllers();
+
+            string? publicIp = await IpDefiner.GetPublicIpAddressAsync();
+
+            if (publicIp is not null)
+            {
+                Console.WriteLine($"Your public ip address: {publicIp}");
+            }
+
             app.Run();
         }
     }
