@@ -49,9 +49,7 @@ services:
       - cryptalk_network
 
   cryptalk.caddy:
-    build:
-      context: .
-      dockerfile: Cryptalk/Dockerfile
+    image: caddy:latest  
     container_name: cryptalk.caddy
     restart: unless-stopped
     env_file:
@@ -60,9 +58,7 @@ services:
       - "${CADDY_PORT1}:${CADDY_PORT1}"
       - "${CADDY_PORT2}:${CADDY_PORT2}"
     environment:
-      EMAIL: ${EMAIL}
       DOMAIN: ${DOMAIN}
-      CLOUDFLARE_TOKEN: ${CLOUDFLARE_TOKEN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
