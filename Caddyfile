@@ -1,13 +1,4 @@
-{
-	email {env.EMAIL}
-}
-
-{env.DOMAIN} {
-	encode zstd gzip
-
-	tls {
-		dns cloudflare {env.CLOUDFLARE_TOKEN}
-	}
-
+{$DOMAIN} {
+	encode gzip zstd
 	reverse_proxy cryptalk.api:8080
 }

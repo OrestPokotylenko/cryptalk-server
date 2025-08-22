@@ -41,9 +41,3 @@ RUN dotnet tool restore
 COPY migrate.sh /migrate.sh
 RUN chmod +x /migrate.sh
 ENTRYPOINT ["/migrate.sh"]
-
-# --- Caddy with Cloudflare DNS plugin ---
-FROM caddy:builder AS caddy-builder
-RUN xcaddy build --with github.com/caddy-dns/cloudflare
-FROM caddy:latest AS caddy-final
-COPY --from=caddy-builder /usr/bin/caddy /usr/bin/caddy
