@@ -19,4 +19,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="API\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Application\" />
+    <Folder Include="Infrastructure\" />
+  </ItemGroup>
+
 </Project>

@@ -1,7 +1,9 @@
-﻿using Cryptalk.Models;
+﻿using Cryptalk.Domain.Chat;
+using Cryptalk.Domain.Device;
+using Cryptalk.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Cryptalk.Data
+namespace Cryptalk.Infrastructure.Persistence
 {
     public class CryptalkDbContext : DbContext
     {

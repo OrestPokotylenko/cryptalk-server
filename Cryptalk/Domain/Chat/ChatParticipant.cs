@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Cryptalk.Models
+namespace Cryptalk.Domain.Chat
 {
     public class ChatParticipant
     {

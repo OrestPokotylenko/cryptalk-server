@@ -1,8 +1,5 @@
-using Cryptalk.Data;
-using Cryptalk.Utils;
-using Microsoft.AspNetCore.HttpOverrides;
+using Cryptalk.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Cryptalk
 {
@@ -23,7 +20,7 @@ namespace Cryptalk
                 c.SwaggerDoc("v1", new() { Title = "API", Version = "v1" });
             });
 
-            // 2. Build AFTER everything is registered
+            
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -35,13 +32,6 @@ namespace Cryptalk
             app.UseAuthorization();
 
             app.MapControllers();
-
-            string? publicIp = await IpDefiner.GetPublicIpAddressAsync();
-
-            if (publicIp is not null)
-            {
-                Console.WriteLine($"Your public ip address: {publicIp}");
-            }
 
             app.Run();
         }

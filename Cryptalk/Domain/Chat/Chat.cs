@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Cryptalk.Models;
+using System.ComponentModel.DataAnnotations;
 
-namespace Cryptalk.Models
+namespace Cryptalk.Domain.Chat
 {
     public class Chat
     {
