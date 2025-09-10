@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Cryptalk.Infrastructure.Persistence.Repositories
+namespace Cryptalk.Infrastructure.Persistance.Repositories
 {
-    public class EfRepository<T> where T : class
+    public abstract class EfRepository<T> where T : class
     {
         private readonly CryptalkDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly DbSet<T> _dbSet;
 
         public EfRepository(CryptalkDbContext context)
         {

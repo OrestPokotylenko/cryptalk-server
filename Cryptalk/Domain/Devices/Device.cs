@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Cryptalk.Domain.Device
+namespace Cryptalk.Domain.Devices
 {
     public class Device
     {

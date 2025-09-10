@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Cryptalk.Migrations
+namespace Cryptalk.Infrastructure.Persistance.Migrations
 {
     /// <inheritdoc />
-    public partial class InitSchema : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,10 +16,10 @@ namespace Cryptalk.Migrations
                 name: "Chats",
                 columns: table => new
                 {
-                    ChatId = table.Column<string>(type: "text", nullable: false),
+                    ChatId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ChatType = table.Column<string>(type: "text", nullable: false),
                     OwnerDeviceId = table.Column<string>(type: "text", nullable: false),
-                    GroupPublicKey = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -46,7 +46,7 @@ namespace Cryptalk.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ChatId = table.Column<string>(type: "text", nullable: false),
+                    ChatId = table.Column<int>(type: "integer", nullable: false),
                     DeviceId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -66,11 +66,12 @@ namespace Cryptalk.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ChatId = table.Column<string>(type: "text", nullable: false),
+                    ChatId = table.Column<int>(type: "integer", nullable: false),
                     SenderId = table.Column<string>(type: "text", nullable: false),
+                    Aad = table.Column<string>(type: "text", nullable: false),
                     Ciphertext = table.Column<string>(type: "text", nullable: false),
                     Nonce = table.Column<string>(type: "text", nullable: false),
-                    Signature = table.Column<string>(type: "text", nullable: false),
+                    Tag = table.Column<string>(type: "text", nullable: false),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
