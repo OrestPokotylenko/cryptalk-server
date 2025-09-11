@@ -4,7 +4,7 @@ namespace Cryptalk.Infrastructure.Persistance.Repositories
 {
     public abstract class EfRepository<T> where T : class
     {
-        private readonly CryptalkDbContext _context;
+        protected readonly CryptalkDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
         public EfRepository(CryptalkDbContext context)

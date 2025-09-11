@@ -1,29 +1,57 @@
 ﻿using Cryptalk.Application.Common.Dtos;
 using Cryptalk.Application.Messages.Dtos;
 using Cryptalk.Domain.Messages;
+using Cryptalk.Domain.WebSockets;
 using Cryptalk.Infrastructure.Persistance.Repositories;
-using System.Collections.Generic;
+using Cryptalk.Infrastructure.Realtime;
 
 namespace Cryptalk.Application.Messages
 {
-    public class MessageService(MessageRepository messageRepository)
+    public class MessageService(MessageRepository messageRepository, ChatNotifier chatNotifier)
     {
         private readonly MessageRepository _messageRepository = messageRepository;
+        private readonly ChatNotifier _chatNotifier = chatNotifier;
 
-        public async Task<int> CreateMessageAsync(CreateMessageDto messageRequest, CancellationToken ct)
+        public async Task<int> CreateMessageAsync(CreateMessageDto dto, CancellationToken ct)
         {
-            Message message = new(messageRequest.ChatId, 
-                messageRequest.SenderId, 
-                messageRequest.Aad, 
-                messageRequest.Ciphertext, 
-                messageRequest.Nonce, 
-                messageRequest.Tag, 
-                messageRequest.Timestamp);
+            var message = new Message(
+                dto.ChatId,
+                dto.SenderId,
+                dto.Aad,
+                dto.Ciphertext,
+                dto.Nonce,
+                dto.Tag,
+                dto.Timestamp
+            );
 
-            await _messageRepository.AddAsync(message, ct);
-            await _messageRepository.SaveChangesAsync(ct);
-
+            await _messageRepository.CreateMessageAsync(message, ct);
+            await NotifyCreatedAsync(message, ct);
             return message.Id;
+        }
+
+        private Task NotifyCreatedAsync(Message message, CancellationToken ct)
+        {
+            var payload = new
+            {
+                id = message.Id,
+                chatId = message.ChatId,
+                message.SenderId,
+                message.Aad,
+                message.Ciphertext,
+                message.Nonce,
+                message.Tag,
+                message.Timestamp
+            };
+
+            var envelope = new WsEnvelope<object>(
+                Type: WsTypes.MessageCreated,
+                ChatId: message.ChatId,
+                RequestId: null,
+                Ts: DateTime.UtcNow,
+                Payload: payload
+            );
+
+            return _chatNotifier.PublishAsync(message.ChatId, envelope, ct);
         }
 
         public async Task<Message?> GetMessageByIdAsync(int id, CancellationToken ct)

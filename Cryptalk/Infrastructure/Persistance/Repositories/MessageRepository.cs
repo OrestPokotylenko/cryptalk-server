@@ -74,5 +74,11 @@ namespace Cryptalk.Infrastructure.Persistance.Repositories
 
             return (items, next);
         }
+
+        public async Task CreateMessageAsync(Message message, CancellationToken ct)
+        {
+            _dbSet.Add(message);
+            await _context.SaveChangesAsync(ct);
+        }
     }
 }
