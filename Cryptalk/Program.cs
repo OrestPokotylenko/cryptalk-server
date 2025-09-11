@@ -1,14 +1,17 @@
-using Cryptalk.Data;
-using Cryptalk.Utils;
-using Microsoft.AspNetCore.HttpOverrides;
+using Cryptalk.API.WebSockets;
+using Cryptalk.Application.Chats;
+using Cryptalk.Application.Messages;
+using Cryptalk.Infrastructure.Persistance;
+using Cryptalk.Infrastructure.Persistance.Repositories;
+using Cryptalk.Infrastructure.Realtime;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Cryptalk
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
             var cfg = builder.Configuration;
@@ -23,7 +26,13 @@ namespace Cryptalk
                 c.SwaggerDoc("v1", new() { Title = "API", Version = "v1" });
             });
 
-            // 2. Build AFTER everything is registered
+            builder.Services.AddScoped<MessageRepository>();
+            builder.Services.AddScoped<ChatRepository>();
+            builder.Services.AddScoped<MessageService>();
+            builder.Services.AddScoped<ChatService>();
+            builder.Services.AddSingleton<ConnectionRegistry>();
+            builder.Services.AddSingleton<ChatNotifier>();
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -33,15 +42,16 @@ namespace Cryptalk
             }
 
             app.UseAuthorization();
+            app.UseWebSockets();
+
+            app.Map("/ws/dev", async (HttpContext ctx, [FromServices] MessageService svc, [FromServices] ConnectionRegistry reg) =>
+            {
+                if (!ctx.WebSockets.IsWebSocketRequest) { ctx.Response.StatusCode = 400; return; }
+                var ws = await ctx.WebSockets.AcceptWebSocketAsync();
+                await WebSocketEndpoint.HandleAsync(ctx, ws, svc, reg);
+            });
 
             app.MapControllers();
-
-            string? publicIp = await IpDefiner.GetPublicIpAddressAsync();
-
-            if (publicIp is not null)
-            {
-                Console.WriteLine($"Your public ip address: {publicIp}");
-            }
 
             app.Run();
         }
